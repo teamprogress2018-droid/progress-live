@@ -193,7 +193,7 @@ t.W.pvEnqueue({text:'Świetna robota!'});
 ok('głos trenera: odtwarzanie zablokowane (iPhone) → cisza, bez głosu telefonu', !t.spoken.length,t.spoken);
 // generator paczki
 const dry=require('child_process').spawnSync('node',['.github/scripts/build_voice_pack.js','--dry'],{encoding:'utf8'});
-ok('generator: 144 stałe linie + zdania z liczbami i nazwami ćwiczeń (454), bez klucza w trybie próbnym', dry.status===0&&/Linii: 454/.test(dry.stdout)&&/do wygenerowania: 310/.test(dry.stdout),dry.stdout+dry.stderr);
+ok('generator: 454 linie, wszystkie już nagrane (nic do generowania), bez klucza w trybie próbnym', dry.status===0&&/Linii: 454/.test(dry.stdout)&&/do wygenerowania: 0 /.test(dry.stdout),dry.stdout+dry.stderr);
 const gen=fs.readFileSync('.github/scripts/build_voice_pack.js','utf8');
 ok('generator: klucz tylko z sekretu, pomija gotowe pliki', /process\.env\.ELEVENLABS_API_KEY/.test(gen)&&/existsSync\(path\.join\(OUT,man\.items/.test(gen)&&!/sk_[a-z0-9]{10}/i.test(gen));
 
