@@ -123,6 +123,9 @@ function pvKg(v){
   if(Number.isInteger(x*2))return (Math.floor(x)?pvNum(Math.floor(x))+' i pół':'pół')+' kilograma';
   return String(x).replace('.',',')+' kilograma';
 }
+/** Zaokrąglenia do wartości, które mają nagranie głosem trenera: przerwa co 15 s, czas treningu co 5 min. */
+function pvRestRound(s){return Math.min(300,Math.max(15,Math.round((Number(s)||0)/15)*15));}
+function pvMinRound(m){return Math.min(180,Math.max(5,Math.round((Number(m)||0)/5)*5));}
 function pvSeconds(n){return pvNumF(n)+' '+pvPlural(n,'sekunda','sekundy','sekund');}
 function pvMinutes(n){return pvNumF(n)+' '+pvPlural(n,'minuta','minuty','minut');}
 function pvReps(v){
@@ -169,6 +172,7 @@ function pvLoadPack(){
   if(typeof fetch!=='function')return null;
   PV.packLoading=fetch(PV_PACK_DIR+'manifest.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(m=>{
     PV.pack=m&&m.items&&typeof m.items==='object'?m.items:null;
+    PV.packLc=null;
     // Odliczanie musi grać od razu — pobieramy je z góry (5 krótkich plików).
     if(PV.pack)['pięć','cztery','trzy','dwa','jeden'].forEach(t=>{const f=PV.pack[t];if(f)fetch(PV_PACK_DIR+f).catch(()=>{});});
     return PV.pack;
@@ -178,12 +182,24 @@ function pvLoadPack(){
 function pvPackSource(item){
   const s=pvSettings();
   if(s.voice!=='trainer'||!PV.pack||!item||!item.text)return null;
-  const whole=PV.pack[item.text];
+  // Nazwy ćwiczeń w planach mają różną wielkość liter („Przysiad goblet”) — szukamy też bez niej.
+  if(!PV.packLc||PV.packLcOf!==PV.pack){PV.packLc={};Object.keys(PV.pack).forEach(k=>{PV.packLc[k.toLowerCase()]=PV.pack[k];});PV.packLcOf=PV.pack;}
+  const get=t=>PV.pack[t]||PV.packLc[String(t).toLowerCase()];
+  const whole=get(item.text);
   if(whole)return PV_PACK_DIR+whole;
-  const parts=String(item.text).split(/(?<=[.!?])\s+/).filter(Boolean);
-  if(parts.length<2)return null;
-  const files=parts.map(p=>PV.pack[p]);
-  return files.every(Boolean)?files.map(f=>PV_PACK_DIR+f):null;
+  // Zdania osobno; zdanie „Nagłówek: reszta.” także z dwóch nagrań („Następne ćwiczenie:” + „Przysiad goblet.”).
+  const files=[];
+  String(item.text).split(/(?<=[.!?])\s+/).filter(Boolean).forEach(p=>{
+    if(get(p)){files.push(get(p));return;}
+    const i=p.indexOf(': ');
+    if(i>0){const head=get(p.slice(0,i+1)),tail=get(p.slice(i+2));if(head&&tail){files.push(head,tail);return;}}
+    files.push(null);
+  });
+  // Głos trenera: brakujące zdanie pomijamy, resztę mówimy (zamiast milczeć o całym komunikacie).
+  const have=files.filter(Boolean);
+  if(!have.length)return null;
+  if(have.length<files.length)PV.partial=(PV.partial||0)+1;
+  return have.map(f=>PV_PACK_DIR+f);
 }
 pvRegisterSource(pvPackSource);
 /* iPhone gra dźwięk z tego samego elementu <audio>, który raz zagrał po dotknięciu — odblokowujemy go przy starcie treningu. */
@@ -406,7 +422,7 @@ const PV_HANDLERS={
     if(pvSaid('rs:'+d.restKey))return;pvMark('rs:'+d.restKey);
     if(s.info&&s.freq==='extended'&&d.seconds>=20){
       const m=pvPick('restStart');
-      pvEnqueue({text:'Odpoczynek: '+pvSeconds(d.seconds)+'.'+(m?' '+m.text:''),prio:35,ttl:6000,kind:'info'});
+      pvEnqueue({text:'Odpoczynek: '+pvSeconds(pvRestRound(d.seconds))+'.'+(m?' '+m.text:''),prio:35,ttl:6000,kind:'info'});
     }
     // Motywacja w przerwie (≥ 45 s), z odstępem 3–4 min; pod koniec treningu — wskazówka o technice.
     if(d.seconds>=45)pvSayMotivation(d.late&&Math.random()<0.5?'lateTip':'motiv');
@@ -452,7 +468,7 @@ const PV_HANDLERS={
     if(s.summary){
       lines.push((pvPick('done')||pvMsg(91)).text);
       if(s.freq!=='minimal'&&d.exDone)lines.push('Dzisiaj ukończono '+pvNum(d.exDone)+' '+pvPlural(d.exDone,'ćwiczenie','ćwiczenia','ćwiczeń')+'.');
-      if(s.freq!=='minimal'&&d.minutes)lines.push('Twój trening trwał '+pvMinutes(d.minutes)+'.');
+      if(s.freq!=='minimal'&&d.minutes)lines.push('Twój trening trwał '+pvMinutes(pvMinRound(d.minutes))+'.');
     }
     if(s.records){
       const n=d.totalWorkouts|0;
@@ -624,7 +640,7 @@ if(typeof document!=='undefined'&&document.addEventListener){
 }
 
 window.PV=PV;window.PV_LIB=PV_LIB;window.PV_POOL=PV_POOL;window.PV_SUPPORT=PV_SUPPORT;window.PV_DEFAULTS=PV_DEFAULTS;
-window.pvNum=pvNum;window.pvNumF=pvNumF;window.pvNumGen=pvNumGen;window.pvOrd=pvOrd;window.pvPlural=pvPlural;window.pvKg=pvKg;window.pvSeconds=pvSeconds;window.pvMinutes=pvMinutes;window.pvReps=pvReps;window.pvExName=pvExName;
+window.pvNum=pvNum;window.pvNumF=pvNumF;window.pvNumGen=pvNumGen;window.pvOrd=pvOrd;window.pvPlural=pvPlural;window.pvKg=pvKg;window.pvSeconds=pvSeconds;window.pvMinutes=pvMinutes;window.pvReps=pvReps;window.pvExName=pvExName;window.pvRestRound=pvRestRound;window.pvMinRound=pvMinRound;
 window.pvSettings=pvSettings;window.pvSaveSettings=pvSaveSettings;window.pvEmit=pvEmit;window.pvEnqueue=pvEnqueue;window.pvStop=pvStop;window.pvCountdown=pvCountdown;window.pvRegisterSource=pvRegisterSource;
 window.pvUnlockAudio=pvUnlockAudio;window.pvLoadPack=pvLoadPack;window.pvPackSource=pvPackSource;window.pvAfterSet=pvAfterSet;window.pvExStartData=pvExStartData;window.pvRestCompleteData=pvRestCompleteData;window.pvWorkoutStats=pvWorkoutStats;window.pvReturning=pvReturning;
 window.pvMuteBtnHTML=pvMuteBtnHTML;window.pvToggleMute=pvToggleMute;window.pvSettingsCardHTML=pvSettingsCardHTML;window.pvSetFromUI=pvSetFromUI;window.pvTest=pvTest;

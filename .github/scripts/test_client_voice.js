@@ -168,7 +168,11 @@ t=makeCtx({trainerVoice:true});withWorkout(t);
 t.W.PV.pack={'Świetna robota!':'a.mp3','Seria druga z czterech.':'b.mp3','Czas na odpoczynek.':'c.mp3'};
 ok('nagranie: cały tekst z manifestu', t.W.pvPackSource({text:'Świetna robota!'})==='assets/voice/pv/a.mp3');
 ok('nagranie: zdania po kolei, gdy każde jest w manifeście', JSON.stringify(t.W.pvPackSource({text:'Seria druga z czterech. Czas na odpoczynek.'}))===JSON.stringify(['assets/voice/pv/b.mp3','assets/voice/pv/c.mp3']));
-ok('nagranie: brak choć jednego zdania → synteza mowy', t.W.pvPackSource({text:'Seria druga z czterech. Następne ćwiczenie: X.'})===null);
+ok('nagranie: brak jednego zdania → mówimy resztę (bez głosu telefonu)', JSON.stringify(t.W.pvPackSource({text:'Seria druga z czterech. Następne ćwiczenie: X.'}))===JSON.stringify(['assets/voice/pv/b.mp3']));
+ok('nagranie: brak wszystkich zdań → nic', t.W.pvPackSource({text:'Coś zupełnie innego.'})===null);
+t.W.PV.pack={'Następne ćwiczenie:':'h.mp3','Przysiad Goblet.':'n.mp3','Zaplanowane obciążenie:':'z.mp3','sześćdziesiąt dwa i pół kilograma.':'k.mp3'};
+ok('nagranie: „Nagłówek: reszta.” z dwóch nagrań, nazwa ćwiczenia bez względu na wielkość liter', JSON.stringify(t.W.pvPackSource({text:'Następne ćwiczenie: Przysiad goblet. Zaplanowane obciążenie: sześćdziesiąt dwa i pół kilograma.'}))===JSON.stringify(['assets/voice/pv/h.mp3','assets/voice/pv/n.mp3','assets/voice/pv/z.mp3','assets/voice/pv/k.mp3']));
+ok('zaokrąglenia do nagrań: przerwa co 15 s, trening co 5 min', t.W.pvRestRound(85)===90&&t.W.pvRestRound(5)===15&&t.W.pvMinRound(47)===45&&t.W.pvMinRound(2)===5);
 t.W.pvSaveSettings({voice:'system'});
 ok('głos telefonu wybrany → bez nagrań', t.W.pvPackSource({text:'Świetna robota!'})===null);
 ok('domyślnie głos trenera', makeCtx({trainerVoice:true}).W.pvSettings().voice==='trainer');
@@ -189,7 +193,7 @@ t.W.pvEnqueue({text:'Świetna robota!'});
 ok('głos trenera: odtwarzanie zablokowane (iPhone) → cisza, bez głosu telefonu', !t.spoken.length,t.spoken);
 // generator paczki
 const dry=require('child_process').spawnSync('node',['.github/scripts/build_voice_pack.js','--dry'],{encoding:'utf8'});
-ok('generator: 100 komunikatów + wsparcie + odliczanie + serie (144 linie), bez klucza w trybie próbnym', dry.status===0&&/Linii: 144/.test(dry.stdout),dry.stdout+dry.stderr);
+ok('generator: 144 stałe linie + zdania z liczbami i nazwami ćwiczeń (454), bez klucza w trybie próbnym', dry.status===0&&/Linii: 454/.test(dry.stdout)&&/do wygenerowania: 310/.test(dry.stdout),dry.stdout+dry.stderr);
 const gen=fs.readFileSync('.github/scripts/build_voice_pack.js','utf8');
 ok('generator: klucz tylko z sekretu, pomija gotowe pliki', /process\.env\.ELEVENLABS_API_KEY/.test(gen)&&/existsSync\(path\.join\(OUT,man\.items/.test(gen)&&!/sk_[a-z0-9]{10}/i.test(gen));
 
