@@ -64,7 +64,7 @@ const ORIGIN = 'http://localhost:' + (process.env.LAYOUT_PORT || '8080');
   await page.waitForTimeout(200);
   const g = await page.evaluate(() => ({ gate: !!document.getElementById('pv-gate'), w: window._writes.find((x) => x.col === 'clients'), c: window.CL[0].consents }));
   ok('akceptacja: zapis `consents` na karcie klienta (merge), zgoda na zdrowie = nie', !g.gate && g.w && g.w.id === 'c1' && g.w.merge && g.w.data.consents.privacy.version === PRIVACY_VERSION_T() && g.w.data.consents.health.granted === false && Object.keys(g.w.data).join() === 'consents', JSON.stringify(g));
-  function PRIVACY_VERSION_T() { return '2026-11-26-vision'; }
+  function PRIVACY_VERSION_T() { return '2026-11-27'; }
 
   // Po zgodzie bramka nie wraca.
   await page.evaluate(() => privacyGateCheck());
@@ -83,7 +83,7 @@ const ORIGIN = 'http://localhost:' + (process.env.LAYOUT_PORT || '8080');
   ok('po powrocie sieci zgoda zapisuje się na karcie', !flushed.pending && flushed.w === 1 && flushed.h === true, JSON.stringify(flushed));
 
   // Profil → Prywatność.
-  await boot({ consents: { privacy: { version: '2026-11-26-vision', at: '2026-11-24T10:00:00.000Z' }, health: { granted: true, at: '2026-11-24T10:00:00.000Z' } } });
+  await boot({ consents: { privacy: { version: '2026-11-27', at: '2026-11-24T10:00:00.000Z' }, health: { granted: true, at: '2026-11-24T10:00:00.000Z' } } });
   ok('konto ze zgodą: bez bramki', !(await page.$('#pv-gate')));
   await page.evaluate(() => setClientLiveScreen('profile'));
   await page.waitForTimeout(200);
@@ -92,7 +92,7 @@ const ORIGIN = 'http://localhost:' + (process.env.LAYOUT_PORT || '8080');
   await page.uncheck('[data-pv-card] input[type=checkbox]');
   await page.waitForTimeout(200);
   const wd = await page.evaluate(() => { const w = window._writes.filter((x) => x.col === 'clients').pop(); return w && w.data.consents; });
-  ok('wycofanie zgody na dane o zdrowiu zapisane', wd && wd.health.granted === false && wd.privacy.version === '2026-11-26-vision', JSON.stringify(wd));
+  ok('wycofanie zgody na dane o zdrowiu zapisane', wd && wd.health.granted === false && wd.privacy.version === '2026-11-27', JSON.stringify(wd));
   await page.evaluate(() => setClientLiveScreen('progress'));
   await page.waitForTimeout(200);
   ok('bez zgody: zdjęcia sylwetki zablokowane z wyjaśnieniem', /wymagają zgody na dane o zdrowiu/.test(await page.innerText('[data-cpg-photos]')) && !(await page.$('[data-cpg-photos] .cpg-photo-add')));

@@ -46,6 +46,48 @@ const PV_LIB=(()=>{
   return out;
 })();
 function pvMsg(id){return PV_LIB[id-1]||null;}
+
+/* ---------- Imię klienta (wołacz) ---------- */
+/** Zwroty z imieniem — TE SAME teksty generuje serwer (server/automation/voice-names.cjs, test pilnuje zgodności). */
+const PV_NAME_LINES=['Cześć, {V}!','Ostatnia seria, {V}. Dawaj!','Świetna robota, {V}!','Brawo, {V}!'];
+const PV_NAME_RE=/^[A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż][A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż' -]{0,23}$/;
+const PV_VOC={anna:'Anno',kasia:'Kasiu',basia:'Basiu',zosia:'Zosiu',asia:'Asiu',gosia:'Gosiu',ola:'Olu',ela:'Elu',ula:'Ulu',iza:'Izo',
+  piotr:'Piotrze',paweł:'Pawle',michał:'Michale',rafał:'Rafale',marek:'Marku',jacek:'Jacku',bartek:'Bartku',wojtek:'Wojtku',
+  tomasz:'Tomaszu',łukasz:'Łukaszu',mateusz:'Mateuszu',grzegorz:'Grzegorzu',maciej:'Macieju',andrzej:'Andrzeju',sergiusz:'Sergiuszu',
+  robert:'Robercie',artur:'Arturze',piotrek:'Piotrku',jan:'Janie',adam:'Adamie',kuba:'Kubo',karol:'Karolu',kamil:'Kamilu',daniel:'Danielu',
+  paulina:'Paulino',natalia:'Natalio',julia:'Julio',maria:'Mario',marysia:'Marysiu',małgorzata:'Małgorzato',agnieszka:'Agnieszko',ewa:'Ewo'};
+/** Propozycja wołacza z imienia (trener może ją poprawić). Pierwsze słowo pola „imię i nazwisko”. */
+function pvVocative(fullName){
+  const n=String(fullName||'').trim().split(/\s+/)[0]||'';
+  if(!n)return '';
+  const lc=n.toLowerCase(),cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+  if(PV_VOC[lc])return PV_VOC[lc];
+  let v=lc;
+  if(/(si|zi|ci|ni|dzi)a$/.test(lc))v=lc.slice(0,-1)+'u';
+  else if(/[^aeiouyąęó]la$/.test(lc)&&lc.length<=4)v=lc.slice(0,-1)+'u';
+  else if(/ia$/.test(lc))v=lc.slice(0,-1)+'o';
+  else if(/a$/.test(lc))v=lc.slice(0,-1)+'o';
+  else if(/ek$/.test(lc))v=lc.slice(0,-2)+'ku';
+  else if(/(sz|cz|rz|ż|j|l|g|k|ch|h)$/.test(lc))v=lc+'u';
+  else if(/ł$/.test(lc))v=lc.slice(0,-1)+'le';
+  else if(/r$/.test(lc))v=lc+'ze';
+  else if(/t$/.test(lc))v=lc.slice(0,-1)+'cie';
+  else if(/d$/.test(lc))v=lc+'zie';
+  else if(/[bcfmnpswz]$/.test(lc))v=lc+'ie';
+  return cap(v);
+}
+function pvNameOk(v){return PV_NAME_RE.test(String(v||'').trim());}
+/** Imię w wołaczu, jeśli trener je ustawił (pole client.voiceName). */
+function pvClientName(){
+  try{const c=(window.CL||[]).find(x=>x&&x.id===window._clientId);const v=c&&String(c.voiceName||'').trim();return pvNameOk(v)?v:'';}catch(e){return '';}
+}
+/** Zwrot z imieniem albo '' — przy głosie trenera tylko wtedy, gdy jest nagranie z imieniem tego klienta. */
+function pvNameLine(i){
+  const v=pvClientName();if(!v||!PV_NAME_LINES[i])return '';
+  const t=PV_NAME_LINES[i].replace('{V}',v);
+  if(pvSettings().voice==='trainer'&&!(PV.clientPack&&PV.clientPack[t]))return '';
+  return t;
+}
 /** Grupy logiczne → id komunikatów (losowanie w obrębie grupy). */
 const PV_POOL={
   start:[1,2,3,4,5,6,7,8,9,10], warmupGo:[11,12,13,14,15,16,17], warmupLate:[18,19], warmupDone:[20],
@@ -179,14 +221,37 @@ function pvLoadPack(){
   }).catch(()=>null);
   return PV.packLoading;
 }
+/** Prywatne nagrania z imieniem klienta: Firestore clientVoice/{clientId} {items:{tekst:plik}} + Storage client-voice/{trainerId}/{clientId}/plik.
+ *  Pliki pobieramy przez getBlob (zalogowane żądanie) do adresów blob: w pamięci — bez publicznych linków. */
+function pvLoadClientPack(){
+  const cid=window._clientId,tid=window._trainerId;
+  if(!cid||!tid||PV.clientPackFor===cid)return PV.clientPackLoading||null;
+  if(typeof window._getDoc!=='function'||typeof window._doc!=='function'||!window._db)return null;
+  PV.clientPackFor=cid;
+  PV.clientPackLoading=(async()=>{
+    try{
+      const snap=await window._getDoc(window._doc(window._db,'clientVoice',cid));
+      const d=snap&&snap.exists&&snap.exists()?snap.data():null;
+      if(!d||!d.items||d.trainerId!==tid)return null;
+      const out={};
+      for(const [text,file] of Object.entries(d.items)){
+        if(!/^n_[a-f0-9]{16}\.mp3$/.test(String(file)))continue;
+        try{const blob=await window._getBlob(window._storageRef(window._storage,'client-voice/'+tid+'/'+cid+'/'+file));out[text]=URL.createObjectURL(blob);}catch(e){}
+      }
+      PV.clientPack=out;return out;
+    }catch(e){PV.clientPackFor=null;return null;}
+  })();
+  return PV.clientPackLoading;
+}
 function pvPackSource(item){
   const s=pvSettings();
   if(s.voice!=='trainer'||!PV.pack||!item||!item.text)return null;
   // Nazwy ćwiczeń w planach mają różną wielkość liter („Przysiad goblet”) — szukamy też bez niej.
   if(!PV.packLc||PV.packLcOf!==PV.pack){PV.packLc={};Object.keys(PV.pack).forEach(k=>{PV.packLc[k.toLowerCase()]=PV.pack[k];});PV.packLcOf=PV.pack;}
-  const get=t=>PV.pack[t]||PV.packLc[String(t).toLowerCase()];
+  // Pełny adres: wspólna paczka (assets/voice/pv/) albo prywatne nagranie z imieniem klienta (blob: z getBlob).
+  const get=t=>{if(PV.clientPack&&PV.clientPack[t])return PV.clientPack[t];const f=PV.pack[t]||PV.packLc[String(t).toLowerCase()];return f?PV_PACK_DIR+f:'';};
   const whole=get(item.text);
-  if(whole)return PV_PACK_DIR+whole;
+  if(whole)return whole;
   // Zdania osobno; zdanie „Nagłówek: reszta.” także z dwóch nagrań („Następne ćwiczenie:” + „Przysiad goblet.”).
   const files=[];
   String(item.text).split(/(?<=[.!?])\s+/).filter(Boolean).forEach(p=>{
@@ -199,7 +264,7 @@ function pvPackSource(item){
   const have=files.filter(Boolean);
   if(!have.length)return null;
   if(have.length<files.length)PV.partial=(PV.partial||0)+1;
-  return have.map(f=>PV_PACK_DIR+f);
+  return have;
 }
 pvRegisterSource(pvPackSource);
 /* iPhone gra dźwięk z tego samego elementu <audio>, który raz zagrał po dotknięciu — odblokowujemy go przy starcie treningu. */
@@ -216,7 +281,7 @@ function pvAudioEl(){
 }
 function pvUnlockAudio(){
   try{
-    pvLoadPack();
+    pvLoadPack();pvLoadClientPack();
     const a=pvAudioEl();if(!a||PV.unlocked)return;
     a.src=pvSilentWav();a.volume=0;
     const p=a.play();
@@ -379,8 +444,10 @@ const PV_HANDLERS={
   WORKOUT_START(d){
     pvUnlockAudio();
     const s=pvSettings();
-    if(d.returning&&s.motivation)pvEnqueue({text:PV_SUPPORT.returning,prio:60,kind:'support',key:'ws'});
-    else if(s.motivation&&s.freq!=='minimal'){const m=pvLib('start',{prio:60,kind:'motiv',key:'ws'});if(m){pvEnqueue(m);PV.lastMotivAt=pvNow();}}
+    const hi=pvNameLine(0);
+    if(d.returning&&s.motivation)pvEnqueue({text:(hi?hi+' ':'')+PV_SUPPORT.returning,prio:60,kind:'support',key:'ws'});
+    else if(s.motivation&&s.freq!=='minimal'){const m=pvLib('start',{prio:60,kind:'motiv',key:'ws'});if(m){if(hi)m.text=hi+' '+m.text;pvEnqueue(m);PV.lastMotivAt=pvNow();}}
+    else if(hi)pvEnqueue({text:hi,prio:60,kind:'support',key:'ws'});
   },
   WARMUP_START(){
     const s=pvSettings();if(!s.info||s.freq==='minimal')return;
@@ -405,14 +472,14 @@ const PV_HANDLERS={
     const s=pvSettings();if(!d)return;
     const key='set:'+d.exIdx+':'+d.setIdx;
     if(pvSaid(key))return;pvMark(key);
-    if(d.isPR&&s.records)pvEnqueue({...pvLib('pr'),prio:75,kind:'record'});
+    if(d.isPR&&s.records){const m=pvLib('pr');const nm=pvNameLine(2);if(m&&nm)m.text=nm+' '+m.text;pvEnqueue({...m,prio:75,kind:'record'});}
     if(d.reducedLoad&&s.motivation&&!pvSaid('reduced')){pvMark('reduced');pvEnqueue({text:PV_SUPPORT.reduced,prio:45,kind:'support'});}
     if(d.setsLeft===0)return; // EXERCISE_COMPLETE mówi o końcu ćwiczenia.
     if(!s.info&&!s.motivation)return;
     if(s.freq==='minimal')return;
     let text='';
     if(d.setIdx===0&&d.setsTotal>=2)text=pvMsg(35).text;
-    else if(d.setsLeft===1)text=pvMsg(39).text;
+    else if(d.setsLeft===1){const nm=!pvSaid('nm:last')&&pvNameLine(1);if(nm){pvMark('nm:last');text=nm;}else text=pvMsg(39).text;}
     else if(s.freq==='extended'&&d.setsLeft>=2&&d.setsLeft<=9)text=(d.setsLeft===2?pvMsg(38).text:d.setsLeft===3?pvMsg(37).text:'Zostały jeszcze '+pvNumF(d.setsLeft)+' '+pvPlural(d.setsLeft,'seria','serie','serii')+'.');
     else if(s.freq==='extended'||Math.random()<0.5)text=(pvPick('praise')||{}).text||'';
     if(text)pvEnqueue({text,prio:40,ttl:5000,kind:'praise'});
@@ -466,6 +533,7 @@ const PV_HANDLERS={
     if(!s.summary&&!s.records)return;
     const lines=[];
     if(s.summary){
+      const nm=pvNameLine(3);if(nm)lines.push(nm);
       lines.push((pvPick('done')||pvMsg(91)).text);
       if(s.freq!=='minimal'&&d.exDone)lines.push('Dzisiaj ukończono '+pvNum(d.exDone)+' '+pvPlural(d.exDone,'ćwiczenie','ćwiczenia','ćwiczeń')+'.');
       if(s.freq!=='minimal'&&d.minutes)lines.push('Twój trening trwał '+pvMinutes(pvMinRound(d.minutes))+'.');
@@ -640,7 +708,8 @@ if(typeof document!=='undefined'&&document.addEventListener){
 }
 
 window.PV=PV;window.PV_LIB=PV_LIB;window.PV_POOL=PV_POOL;window.PV_SUPPORT=PV_SUPPORT;window.PV_DEFAULTS=PV_DEFAULTS;
-window.pvNum=pvNum;window.pvNumF=pvNumF;window.pvNumGen=pvNumGen;window.pvOrd=pvOrd;window.pvPlural=pvPlural;window.pvKg=pvKg;window.pvSeconds=pvSeconds;window.pvMinutes=pvMinutes;window.pvReps=pvReps;window.pvExName=pvExName;window.pvRestRound=pvRestRound;window.pvMinRound=pvMinRound;
+window.pvNum=pvNum;window.pvNumF=pvNumF;window.pvNumGen=pvNumGen;window.pvOrd=pvOrd;window.pvPlural=pvPlural;window.pvKg=pvKg;window.pvSeconds=pvSeconds;window.pvMinutes=pvMinutes;window.pvReps=pvReps;window.pvExName=pvExName;window.PV_NAME_LINES=PV_NAME_LINES;window.pvVocative=pvVocative;window.pvNameOk=pvNameOk;window.pvNameLine=pvNameLine;window.pvClientName=pvClientName;window.pvLoadClientPack=pvLoadClientPack;
+if(typeof window.addEventListener==='function')window.addEventListener('load',()=>setTimeout(()=>{try{if(window._clientAppMode)pvLoadClientPack();}catch(e){}},4000));window.pvRestRound=pvRestRound;window.pvMinRound=pvMinRound;
 window.pvSettings=pvSettings;window.pvSaveSettings=pvSaveSettings;window.pvEmit=pvEmit;window.pvEnqueue=pvEnqueue;window.pvStop=pvStop;window.pvCountdown=pvCountdown;window.pvRegisterSource=pvRegisterSource;
 window.pvUnlockAudio=pvUnlockAudio;window.pvLoadPack=pvLoadPack;window.pvPackSource=pvPackSource;window.pvAfterSet=pvAfterSet;window.pvExStartData=pvExStartData;window.pvRestCompleteData=pvRestCompleteData;window.pvWorkoutStats=pvWorkoutStats;window.pvReturning=pvReturning;
 window.pvMuteBtnHTML=pvMuteBtnHTML;window.pvToggleMute=pvToggleMute;window.pvSettingsCardHTML=pvSettingsCardHTML;window.pvSetFromUI=pvSetFromUI;window.pvTest=pvTest;

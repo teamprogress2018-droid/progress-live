@@ -492,6 +492,15 @@ test('communication: client cases, contact preferences, push subscriptions and s
   denied(await write('commsPrefs/' + clientSibling, {...prefs, id: clientSibling, clientId: clientSibling}, userA), 'cannot set sibling preferences');
   denied(await read('commsPrefs/' + clientA, ownerB), 'foreign trainer cannot read preferences');
   denied(await patch('commsPrefs/' + clientA, {channel: 'sms'}, userA), 'unknown channel rejected');
+
+  // Progress Voice: nagrania z imieniem klienta — czyta ten klient i ten trener, zapisuje tylko serwer.
+  await seed('clientVoice/' + clientA, {trainerId: trainerA, clientId: clientA, name: 'Anno', items: {'Brawo, Anno!': 'n_0123456789abcdef.mp3'}});
+  ok(await read('clientVoice/' + clientA, userA), 'client reads own voice-name list');
+  ok(await read('clientVoice/' + clientA, ownerA), 'trainer reads own client voice-name list');
+  denied(await read('clientVoice/' + clientA, sibling), 'another client of the same trainer cannot read voice names');
+  denied(await read('clientVoice/' + clientA, ownerB), 'another trainer cannot read voice names');
+  denied(await write('clientVoice/' + clientA, {trainerId: trainerA, clientId: clientA, items: {}}, ownerA), 'trainer cannot write voice names (server only)');
+  denied(await write('clientVoice/' + clientA, {trainerId: trainerA, clientId: clientA, items: {}}, userA), 'client cannot write voice names');
   ok(await patch('commsPrefs/' + clientA, {categories: {meetings: true, plan: true, checkins: true, habits: false}}, userA), 'client turns off habit reminders (3.0)');
   denied(await patch('commsPrefs/' + clientA, {categories: {meetings: true, ads: true}}, userA), 'unknown notification category rejected');
 

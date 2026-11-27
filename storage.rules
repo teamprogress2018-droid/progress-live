@@ -56,6 +56,12 @@ service firebase.storage {
       allow update: if false;
       allow delete: if isOwnClient(trainerId, clientId) || isOwnTrainer(trainerId);
     }
+    // Progress Voice: zwroty z imieniem klienta głosem trenera. Zapisuje tylko serwer (Admin SDK);
+    // odtwarza ten klient albo ten trener przez getBlob. Bez listowania i publicznego odczytu.
+    match /client-voice/{trainerId}/{clientId}/{fileName} {
+      allow get: if isOwnClient(trainerId, clientId) || isOwnTrainer(trainerId);
+      allow list, create, update, delete: if false;
+    }
     // Every other path (e.g. a future progress-photos/ folder) is denied by default for everyone.
   }
 }

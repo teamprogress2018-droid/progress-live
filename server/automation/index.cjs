@@ -101,3 +101,7 @@ if (WA_ON) exports.whatsappWebhook = onRequest({region: 'europe-west1', maxInsta
   logger.info('whatsapp-webhook', out);
   res.status(200).send('ok');
 });
+
+// ---------- Progress Voice: imię klienta głosem trenera (ElevenLabs) ----------
+// Wdrażana osobno (pilot.sh voice) — wymaga sekretu ELEVENLABS_API_KEY.
+exports.voiceNameClips = require('./voice-names.cjs').voiceNameClipsFunction();

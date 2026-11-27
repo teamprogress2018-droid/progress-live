@@ -93,6 +93,7 @@ jobs:
           node .github/scripts/test_client_readiness.js
           node .github/scripts/test_client_voice.js
           node .github/scripts/test_voice_commands.js
+          node .github/scripts/test_voice_names.js
           node .github/scripts/test_express.js
           node .github/scripts/test_journey.js
           node .github/scripts/test_wrapped.js
@@ -951,6 +952,10 @@ jobs:
       - name: 6d3j3f. Vision (pilotaż) — zgoda klienta przy filmie, analiza AI u trenera
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_vision_ui.js
+
+      - name: 6d3j3g. Imię klienta głosem trenera — karta trenera, wywołanie serwera, silnik
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_voice_names_ui.js
 
       - name: 6d3j4. Progress Express — krótsze warianty treningu zatwierdzone przez trenera
         if: ${{ !cancelled() }}
