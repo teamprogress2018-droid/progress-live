@@ -881,6 +881,10 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_workout_ios_ui.js
 
+      - name: 6d2b. Ekran ćwiczenia — Progress Clean wariant C (nagłówek z Historią i głośnikiem, duży film, Ciężar | Powtórzenia)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_client_variant_c_ui.js
+
       - name: 6d3. Ekran serii klienta (Zapisz serię raz, Cofnij, przerwa, zapas opcjonalny, 360/390/430 px)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_workout_set_ui.js

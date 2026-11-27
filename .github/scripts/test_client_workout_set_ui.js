@@ -36,7 +36,7 @@ let fails=0;let W=0;const ok=(n,c,x)=>{console.log((c?'OK   ':'FAIL ')+W+' px: '
   const t=await page.evaluate(()=>document.querySelector('.cs-ex').innerText);
   ok('krótka nazwa', /Unoszenie bokiem na maszynie\n/.test(t)&&!/siedząc/.test(t));
   ok('brak PRIORYTET/tempo/RPE/wariantów na ekranie', !/PRIORYTET|Tempo|RPE|warianty/i.test(t));
-  ok('cel 10–12 · 15 kg + około 2–3', /10–12 powt\. · 15 kg/.test(t)&&/około 2–3 powtórzeń w zapasie/i.test(t));
+  ok('cel: zakres „Plan: 10–12 powt.”, 15 kg w polu + około 2–3', /Plan: 10–12 powt\./.test(t)&&await page.inputValue('[data-cs-field="kg"]')==='15'&&/około 2–3 powtórzeń w zapasie/i.test(t));
   ok('jeden przycisk w stopce', await page.evaluate(()=>document.querySelectorAll('.cs-ex-foot button').length)===1);
   for(const s of ['.cs-set-grid','[data-cs-primary="save"]','.cs-tech-btn','[data-cs-rir-toggle]']) ok('widoczne bez przewijania: '+s, await vis(s));
   // Zapas powtórzeń jest schowany pod jednym przyciskiem (opcjonalny); po rozwinięciu „?” i odpowiedzi.
@@ -54,8 +54,8 @@ let fails=0;let W=0;const ok=(n,c,x)=>{console.log((c?'OK   ':'FAIL ')+W+' px: '
   {const r0=await page.inputValue('[data-cs-field="reps"]');await page.click('.cs-step[aria-label^="Powtórzenia więcej"]');const r1=await page.inputValue('[data-cs-field="reps"]');
    ok('+ przy powtórzeniach dodaje 1', Number(r1)===Number(r0||0)+1, r0+'→'+r1);
    await page.click('.cs-step[aria-label^="Powtórzenia mniej"]');ok('− przy powtórzeniach odejmuje 1', await page.inputValue('[data-cs-field="reps"]')===String(r0||0));
-   const lay=await page.evaluate(()=>({chips:[...document.querySelectorAll('.cs-dots span')].map(x=>x.textContent).join(''),kgLeft:document.querySelector('[data-cs-box="kg"]').getBoundingClientRect().left<document.querySelector('[data-cs-box="reps"]').getBoundingClientRect().left,dzis:/Dzisiaj:/.test(document.querySelector('.cs-goal-prev').innerText)}));
-   ok('numery serii 1 2 3, ciężar po lewej, „Dzisiaj:”', lay.chips==='123'&&lay.kgLeft&&lay.dzis, JSON.stringify(lay));}
+   const lay=await page.evaluate(()=>({chips:[...document.querySelectorAll('.cs-dots span')].map(x=>x.textContent).join(''),kgLeft:document.querySelector('[data-cs-box="kg"]').getBoundingClientRect().left<document.querySelector('[data-cs-box="reps"]').getBoundingClientRect().left,dzis:!document.querySelector('.cs-goal-prev')&&/^Plan:/.test((document.querySelector('[data-cs-target]')||{}).innerText||'')}));
+   ok('numery serii 1 2 3, ciężar po lewej, plan bez powielonego kafelka „Dzisiaj”', lay.chips==='123'&&lay.kgLeft&&lay.dzis, JSON.stringify(lay));}
   await page.fill('.cs-set-grid input >> nth=0','10');
   await page.screenshot({path:`${out}/${W}-1-wpisane.png`});
   await page.tap('[data-cs-primary="save"]');await page.waitForTimeout(100);
@@ -88,16 +88,16 @@ let fails=0;let W=0;const ok=(n,c,x)=>{console.log((c?'OK   ':'FAIL ')+W+' px: '
   s1=await st();ok('przejście do ćwiczenia 2', s1.exIdx===1);
   const t2=await page.evaluate(()=>document.querySelector('.cs-ex').innerText);ok('ważna uwaga trenera widoczna', /Uwaga trenera: bez szarpania/.test(t2));
   // powrót do poprzedniego (menu)
-  await page.click('.cs-more-btn');const menu=await page.evaluate(()=>document.querySelector('.cs-sheet').innerText);
+  await page.click('[data-cs-help]');const menu=await page.evaluate(()=>document.querySelector('.cs-sheet').innerText);
   ok('menu: poprzednie, pomiń osobno', /Poprzednie ćwiczenie/.test(menu)&&/Pomiń ćwiczenie/.test(menu), menu);
   await page.click('text=← Poprzednie ćwiczenie');await page.waitForTimeout(100);
   s1=await st();ok('powrót do ćwiczenia 1 z zapisanymi wynikami', s1.exIdx===0&&s1.sets[0].every(x=>x[0]==='✓'));
   // Zamień ćwiczenie w menu
-  await page.click('.cs-more-btn');ok('menu: Zamień ćwiczenie (warianty od trenera)', await page.isVisible('text=Zamień ćwiczenie'));
+  await page.click('[data-cs-help]');ok('menu: Zamień ćwiczenie (warianty od trenera)', await page.isVisible('text=Zamień ćwiczenie'));
   await page.click('text=Zamień ćwiczenie');const sw=await page.evaluate(()=>document.querySelector('.cs-sheet').innerText);ok('lista wariantów', /z hantlami/.test(sw)&&/na wyciągu/.test(sw));
   await page.click('.cs-sheet-x');
   // klawiatura: ćw. 2, fokus na powtórzeniach, ekran 55% wysokości
-  await page.click('.cs-more-btn');await page.click('text=Lista ćwiczeń');await page.click('.cs-ov-row >> nth=1');
+  await page.click('[data-cs-help]');await page.click('text=Lista ćwiczeń');await page.click('.cs-ov-row >> nth=1');
   await page.focus('.cs-set-grid input >> nth=0');
   await page.evaluate(h=>{const p=document.getElementById('clive-player');p.classList.add('cw-kb');p.style.setProperty('--cw-vvh',h+'px');},Math.round(H*0.55));
   await page.waitForTimeout(500);
