@@ -41,3 +41,7 @@ Każdy etap to osobny PR do `main`. Wycofanie = `git revert` commita merge'a dan
 - [x] 4a Komendy głosowe w treningu (`voice-commands.js`) — zaprojektowane, zaimplementowane, testy jednostkowe + UI na atrapie rozpoznawania mowy; **nie testowane na prawdziwym iPhonie**
 - [x] 4b Progress AI dla klienta (`client-ai.js`, ścieżka `/client` w pośredniku AI) — zaprojektowane, zaimplementowane, testy pośrednika + UI na atrapie; **działa po wklejeniu nowego Workera w Cloudflare**
 - [x] 4c Vision (pilotaż) — analiza filmu techniki przez AI u trenera, za zgodą klienta (`vision.js`); **nie testowane na prawdziwych filmach**
+
+## Etap 5 — postęp
+- [x] 5a Body — suwak przed / po z pomiarami (`body.js`); nie testowane na prawdziwych zdjęciach na iPhonie
+- [ ] 5b Aplikacja natywna (Capacitor): Apple Health / Health Connect, widżety — wymaga konta Apple Developer i budowania na macOS
