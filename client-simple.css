@@ -1017,3 +1017,18 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 .vi-tip { margin: 0; padding: 8px 10px; border-radius: 8px; background: var(--bg-secondary, #f4f5f7); }
 .vi-raw { white-space: pre-wrap; }
 .vi-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+
+/* Etap 5a — Body: porównanie sylwetki suwakiem (body.js) */
+.bd-cmp { position: relative; width: 100%; aspect-ratio: 3 / 4; overflow: hidden; border-radius: 16px; background: var(--bg-secondary, #f4f5f7); touch-action: pan-y; user-select: none; -webkit-user-select: none; cursor: ew-resize; margin-top: 8px; }
+.bd-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.bd-after { position: absolute; inset: 0; clip-path: inset(0 0 0 var(--bd-pos, 50%)); }
+.bd-line { position: absolute; top: 0; bottom: 0; left: var(--bd-pos, 50%); width: 2px; margin-left: -1px; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.25); }
+.bd-knob { position: absolute; top: 50%; left: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: #fff; color: #20242b; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+.bd-tag { position: absolute; top: 10px; padding: 2px 10px; border-radius: 999px; background: rgba(0,0,0,.6); color: #fff; font-size: 0.75rem; font-weight: 700; }
+.bd-tag-a { left: 10px; } .bd-tag-b { right: 10px; }
+.bd-range { display: block; margin: 10px 0 4px; }
+.bd-range input { width: 100%; min-height: 44px; accent-color: var(--accent); }
+.bd-dates { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.bd-dates label { display: flex; flex-direction: column; gap: 4px; font-size: 0.8125rem; color: var(--text-secondary); }
+.bd-dates select { min-height: 44px; padding: 0 10px; border: 1px solid var(--border, #e1e4e8); border-radius: 12px; background: var(--bg-card); color: var(--text-primary); font-size: 1rem; }
+.bd-deltas { margin-top: 8px; }

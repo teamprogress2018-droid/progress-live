@@ -147,3 +147,9 @@
 - Polityka prywatności: ElevenLabs jako podmiot przetwarzający (imię), wersja `2026-11-27`.
 - Wdrożenie: `pilot.sh rules`, potem `pilot.sh voice` (sekret ELEVENLABS_API_KEY + funkcja).
 - Testy: `test_voice_names.js`, `test_voice_names_ui.js`, reguły w `test-tenant-rules.cjs` i `test-storage-rules.cjs`.
+
+## Etap 5a — Body (gałąź `feature/3.0-body`)
+- `body.js`: w Postępach klienta suwak przed / po (zdjęcie „po” odsłaniane przeciąganiem albo suwakiem dostępnym z klawiatury), wybór dat obu zestawów, ujęcia Przód / Bok / Tył, liczba dni między zdjęciami.
+- Pod zdjęciami zmiany z tych dni: masa ciała (gdy trener ją pokazuje) i obwody — wartość najbliższa dacie zdjęcia (±14 dni).
+- Mniej niż 2 zestawy z danym ujęciem — dotychczasowa zachęta i „Dodaj zdjęcia”.
+- Test: `test_client_progress_v2_ui.js` (sekcja Body).
